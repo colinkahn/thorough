@@ -1,0 +1,2 @@
+{:ns-paths ["sample"]
+ :file->ns {"thorough/sample.clj" thorough.sample}}

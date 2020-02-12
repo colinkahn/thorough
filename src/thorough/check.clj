@@ -57,16 +57,17 @@
             check-rets (atom {})]
         (doseq [check-sym check-syms]
           (binding [*check-sym* check-sym]
-            (swap! check-rets assoc check-sym (doall (st/check check-sym)))))
+            (swap! check-rets assoc check-sym (first (st/check check-sym)))))
 
         (let [covered *covered*]
           (if-not (some ::eval (mapv :hits @covered))
             (throw (ex-info "No hits after check!" {:covered @covered})))
+
           (map (fn [check-sym]
                  {::sym check-sym
                   ::ret (get @check-rets check-sym)
                   ::hit (hits @covered {::check-sym check-sym ::file->ns file->ns})
-                  ::missing (missing @covered {::check-sym check-sym ::file->ns file->ns})})
+                  ::miss (missing @covered {::check-sym check-sym ::file->ns file->ns})})
                check-syms))))))
 
 (comment
