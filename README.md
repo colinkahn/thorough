@@ -24,5 +24,9 @@ clj -A:sample -m thorough.main ./sample.edn
 
 ```
 {:ns-paths ["sample"]
- :file->ns {"thorough/sample.clj" thorough.sample}}
+ :file->ns {"thorough/sample.clj" thorough.sample
+            "thorough/sample_instrumented.clj" thorough.sample-instrumented}
+ :check-opts {thorough.sample/calls-boundry
+              {:pre thorough.sample-instrumented/pre-calls-boundry
+               :post thorough.sample-instrumented/post-calls-boundry}}}
 ```

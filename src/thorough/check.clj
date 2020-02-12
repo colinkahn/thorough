@@ -41,11 +41,18 @@
                         (comp (complement zero?) #(get % check-sym 0) :hits)))
        (seq)))
 
+(defn call-sym
+  "Given a symbol sym loads its namespace and runs it with zero arguments."
+  [sym]
+  (when sym
+    (require (symbol (namespace sym)))
+    (eval (list sym))))
+
 (defn check
   "Given ns-paths and file->ns map instruments and checks all functions with
   registered fdefs. Returns a report for each including the sym checked, check results
   and any lines not hit during the check."
-  [ns-paths file->ns]
+  [{:keys [ns-paths file->ns check-opts]}]
   (let [namespaces (coverage/find-nses ns-paths [])
         ordered-nses (dep/in-dependency-order (map symbol namespaces))]
 
@@ -57,7 +64,12 @@
             check-rets (atom {})]
         (doseq [check-sym check-syms]
           (binding [*check-sym* check-sym]
-            (swap! check-rets assoc check-sym (first (st/check check-sym)))))
+            (let [{:as opts :keys [build cleanup]} (get check-opts check-sym)
+                  opts (merge opts (call-sym build))]
+              (swap! check-rets assoc check-sym (first (st/check check-sym opts)))
+              (if cleanup
+                (call-sym cleanup)
+                (st/unstrument check-sym)))))
 
         (let [covered *covered*]
           (if-not (some ::eval (mapv :hits @covered))
@@ -69,6 +81,3 @@
                   ::hit (hits @covered {::check-sym check-sym ::file->ns file->ns})
                   ::miss (missing @covered {::check-sym check-sym ::file->ns file->ns})})
                check-syms))))))
-
-(comment
-  (check ["sample"] {"thorough/sample.clj" 'thorough.sample}))

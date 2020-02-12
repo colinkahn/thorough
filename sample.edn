@@ -1,2 +1,6 @@
 {:ns-paths ["sample"]
- :file->ns {"thorough/sample.clj" thorough.sample}}
+ :file->ns {"thorough/sample.clj" thorough.sample
+            "thorough/sample_instrumented.clj" thorough.sample-instrumented}
+ :check-opts {thorough.sample/calls-boundry
+              {:build thorough.sample-instrumented/pre-calls-boundry
+               :cleanup thorough.sample-instrumented/post-calls-boundry}}}
